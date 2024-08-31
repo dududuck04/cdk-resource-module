@@ -1,0 +1,137 @@
+@startuml ClassDiagram01
+
+scale 2
+title Framework Class Diagram
+
+
+package CDK-Project {
+
+    ' ----------CDK Core Layer----------------'
+    namespace cdk {
+        class Stack {}
+        class StackProps {}
+        class Construct {}
+        class App {}
+    }
+    ' ----------Lib Template Layer----------------'
+    package lib {
+        package template #DDDDDD {
+            interface AppConfig {
+                +project: Project
+                +stack: any
+            }
+
+            class AppContext {
+                +cdkApp: cdk.App
+                +appConfig: AppConfig
+                +stackCommonProps: StackCommonProps
+                +ready()
+                -createStackCommonProps()
+                -findAppConfigFile()
+                -getProjectPrefix()
+                -loadAppConfigFile()
+                -updateContextArgs()
+                -addPrefixIntoStackName()
+            }
+
+            namespace template.common {
+                interface ICommonHelper {
+                    findEnumType<T>(): T[keyof T];
+                    exportOutput(): void;
+                    putParameter(): string;
+                    getParameter(): string;
+                    putVariable(): void;
+                    getVariable(): string;
+                }
+                class CommonHelper {
+
+                }
+
+                CommonHelper ..|> ICommonHelper
+                
+                interface ICommonGuardian {
+                    createS3BucketName(): string;
+                    createS3Bucket(): s3.Bucket;
+                }
+                class ICommonGuardian {
+
+                }
+
+                CommonGuardian ..|> ICommonGuardian
+            }
+
+            package construct {
+                namespace construct.base {
+                    interface ConstructCommonProps {
+                        projectPrefix: string
+                        stackConfig: StackConfig
+                        region: string
+                        account: string
+                        variable: any
+                    }
+                    class BaseConstruct {
+                    }
+                    BaseConstruct o-left-> ConstructCommonProps
+                }
+            }
+
+            package stack {
+                namespace stack.base {
+                    interface StackCommonProps {
+                        projectPrefix: string
+                        appConfig: AppConfig
+                        appConfigPath: string
+                        variable: any
+                    }
+                    class BaseStack {
+                    }
+                    BaseStack o-right-> StackCommonProps
+                }
+                package vpc {
+                    class VpcBaseStack <<abstract>> {
+                        #onLookupLegacyVpc()
+                        #onPostConstructor()
+                    }
+                    stack.base.BaseStack <|-- VpcBaseStack
+                }
+                package cfn {
+                    class CfnIncludeStack <<abstract>> {
+                        #onLoadTemplateProps() 
+                        #onPostConstructor()
+                    }
+                    stack.base.BaseStack <|-- CfnIncludeStack
+                }
+                package other {
+                    class OtherStack <<abstract>> {
+
+                    }
+                    stack.base.BaseStack <|-- OtherStack
+                }
+
+            }
+            
+            stack.base.BaseStack .up.|> template.common.ICommonHelper
+            construct.base.BaseConstruct .up.|> template.common.ICommonHelper
+            stack.base.BaseStack .up.|> template.common.ICommonGuardian
+            construct.base.BaseConstruct .up.|> template.common.ICommonGuardian
+            
+            namespace pattern {
+                class LambdaPattern {
+                }
+                class CloudWatchPattern {
+                }
+            }
+            pattern -right[hidden]-> AppContext
+            AppConfig <--* AppContext
+            stack.base.StackCommonProps <--* AppContext
+        }
+    template.common -up[hidden]-> cdk.App
+    AppContext *-up-> cdk.App
+    stack.base.BaseStack -up-|> cdk.Stack
+    stack.base.StackCommonProps -up-|> cdk.StackProps
+    cdk.Construct <|-down- construct.base.BaseConstruct
+    stack.base.StackCommonProps --> AppConfig
+    }
+}
+
+@enduml

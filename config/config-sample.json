@@ -1,0 +1,15 @@
+{
+  "Project": {
+    "Name": "",
+    "Stage": "dev",
+    "Account": "",
+    "Region": "ap-northeast-2",
+    "Profile": ""
+  },
+  "Stack": {
+    "CodeCommitStack": {
+      "RepositoryName": "my-new-repo",
+      "Description": "This is a sample repository managed by CDK"
+    }
+  }
+}
